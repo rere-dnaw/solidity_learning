@@ -5,7 +5,7 @@ pragma solidity 0.8.0; //assign the compiler version
     //"uint" type of int which can't be negative
     //deciaml type is NOT valid for solidity
     
-//the function can be restricted by two key words: pure, view. If no key word  then func is not restricted.
+//the function can be restricted by two key words: pure, view. If no key word then func is not restricted(e.g. can change state variable).
 
 //build in variable: msg.sender(contract calling address), msg.value(value in eth) 
 
@@ -15,6 +15,8 @@ contract HelloWorld {
     
     //state variable
     string stateMsg;
+    int number;
+    int[] arrNum;
     
     //constructor like everywhere else
     constructor(string memory _message){
@@ -48,4 +50,79 @@ contract HelloWorld {
         }
     }
     
+    //loop like in C#/javaScript
+    function helloLoopWhile(int number) public pure returns(int){
+        int i = 0;
+        while(i < 10){
+            number++;
+            i++;
+        }
+        return number;
+    }
+    
+    //loop like in C#/javaScript
+    function helloLoopFor(int number) public pure returns(int){
+        for(int i=0;i<10;i++){
+            number++;
+        }
+        return number;
+    }
+    
+    //getter
+    function getNumber() public view returns(int){
+        return number;
+    }
+    
+    //setter
+    function setNumber(int _number) public returns(int){
+        number = _number;
+    }
+    
+    function addArrNumber(int _number) public {
+        arrNum.push(_number); //"push" can be used only for dynamic array
+    }
+    
+    // array index is uint type
+    function getArrNumber(uint _id) public view returns(int){
+        return arrNum[_id];
+    }
+    
+    function getArray() public view returns(int[] memory){
+        return arrNum;
+    }
+    
+    //like class
+    struct Person{
+        uint age;
+        string name;
+    }
+    
+    //array of objects
+    Person[] people;
+    
+    function addPerson(uint _age, string memory _name) public {
+        Person memory newPerson = Person(_age, _name);
+        people.push(newPerson);
+    }
+    
+        
+    //can't return the object so the properties needs to be return
+    function getPerson(uint _id) public view returns(uint, string memory){
+        Person memory returnPerson = people[_id];
+        return (returnPerson.age, returnPerson.name);
+    }
+    
+    //MAPPING (dictionary) mapping(keyType => valueType)name
+    
+    mapping(address => uint) balance;
+    
+    function addBalance(uint _toAdd) public returns(uint newBalance){
+        balance[msg.sender] += _toAdd;
+        return balance[msg.sender];
+    }
+    
+    function getBalance() public view returns(uint){
+        return balance[msg.sender];
+    }
+
 }
