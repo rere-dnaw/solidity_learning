@@ -124,5 +124,25 @@ contract HelloWorld {
     function getBalance() public view returns(uint){
         return balance[msg.sender];
     }
+    
+    // there exist 4 types of visibilities
+    // public - anyone can execute the function
+    // private - only within the contract, remix(IDE) will not be able to execute the contract
+    // internal - like private but allow to execute function for contracts deriving from it
+    // external - only be able to execute from another contract of service. The contracts on ETH blockchain can interact between each other. 
+    
+    function transfer(address _recipient, uint amount) public {
+        //check balance of msg.sender
+        
+        _transfer(msg.sender, _recipient, amount);
+        
+        //event logs
+    }
+    
+    // _transfer - underscore is a naming convension for a private function
+    function _transfer (address from, address to, uint amount) private{
+        balance[from] -= amount;
+        balance[to] += amount;
+    }
 
 }
