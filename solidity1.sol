@@ -7,7 +7,7 @@ pragma solidity 0.8.0; //assign the compiler version
     
 //the function can be restricted by two key words: pure, view. If no key word then func is not restricted(e.g. can change state variable).
 
-//build in variable: msg.sender(contract calling address), msg.value(value in eth) 
+//buildin variable: msg.sender(contract calling address), msg.value(value in eth) 
 
 contract HelloWorld {
     //global variable
@@ -101,7 +101,7 @@ contract HelloWorld {
     Person[] people;
     
     function addPerson(uint _age, string memory _name) public {
-        Person memory newPerson = Person(_age, _name);
+        Person memory newPerson = Person(_age, _name); //custom object require memory allocation
         people.push(newPerson);
     }
     
@@ -111,12 +111,30 @@ contract HelloWorld {
         Person memory returnPerson = people[_id];
         return (returnPerson.age, returnPerson.name);
     }
+
+}
+
+contract Bank {
     
     //MAPPING (dictionary) mapping(keyType => valueType)name
     
+    address owner;
+    
+    constructor(){
+        owner = msg.sender;
+    }
+    
+    //modifier can take arguments e.g. modifier onlyOwner (uint cost){ .......}
+    modifier onlyOwner {
+        require(msg.sender == owner, "No premission for this operation!"); // if reqire contition is not met, the function will be revert
+        _; // _ means run the function. This line will be replaced with the function code
+    }
+    
     mapping(address => uint) balance;
     
-    function addBalance(uint _toAdd) public returns(uint newBalance){
+    //modifier is before return or {
+    function addBalance(uint _toAdd) public onlyOwner returns(uint) {
+        
         balance[msg.sender] += _toAdd;
         return balance[msg.sender];
     }
@@ -134,9 +152,15 @@ contract HelloWorld {
     function transfer(address _recipient, uint amount) public {
         //check balance of msg.sender
         
+        require(balance[msg.sender] >= amount, "Balance not sufficient!");
+        require(msg.sender != _recipient, "Why are you doing that?");
+        
+        uint previousBalance = balance[msg.sender];
+        
         _transfer(msg.sender, _recipient, amount);
         
-        //event logs
+        assert(balance[msg.sender] == previousBalance - amount); //test
+        
     }
     
     // _transfer - underscore is a naming convension for a private function
@@ -144,5 +168,4 @@ contract HelloWorld {
         balance[from] -= amount;
         balance[to] += amount;
     }
-
 }
