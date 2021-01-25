@@ -120,6 +120,11 @@ contract Bank {
     
     address owner;
     
+    //indexed will allow to search for events raised for specified address. e.g. after sometime all events related to this address czn be found
+    // only three parameters per event can be indexed
+    event balanceAdded(uint amount, address indexed recipient); //defined event
+    event balanceTransfer(address indexed fromAddress, address indexed toAddress, uint value);
+    
     constructor(){
         owner = msg.sender;
     }
@@ -136,6 +141,7 @@ contract Bank {
     function addBalance(uint _toAdd) public onlyOwner returns(uint) {
         
         balance[msg.sender] += _toAdd;
+        emit balanceAdded(_toAdd, msg.sender);
         return balance[msg.sender];
     }
     
@@ -158,6 +164,7 @@ contract Bank {
         uint previousBalance = balance[msg.sender];
         
         _transfer(msg.sender, _recipient, amount);
+        emit balanceTransfer(msg.sender, _recipient, amount);
         
         assert(balance[msg.sender] == previousBalance - amount); //test
         
@@ -168,4 +175,51 @@ contract Bank {
         balance[from] -= amount;
         balance[to] += amount;
     }
+}
+
+contract DataLocation {
+    
+    //Three difrent location for storing data in solidity
+    // storage - pernamet data storage
+    // memory - temporary data storage
+    // calldata - similar to memory buy read-only
+    
+    //state variable
+    uint data = 1000; //storage type. The storage type is set by default.
+    string example = "Test";
+    
+    
+    // Value data type is always stored in memory so doen't have to be specified. e.g. 
+    function getString (string memory text) public pure returns(string memory){
+        return text;
+    }
+    
+    // Value data type is always stored in memory so doen't have to be specified.
+    function getValue (uint value) public returns(uint){
+        uint valueTmp = 0; //all variables defined under function are stored in memory by default like: uint memory valueTmp = 0;
+        data = valueTmp;
+        return value;
+    }
+    
+    // this is example of calldata
+    // function checkAddress(address calldata addressSelf) public returns(bool){
+    //     if(addressSelf == msg.sender){
+    //         return true;
+    //     }else{
+    //         return false;
+    //     }
+    // }
+    
+    
+    // function setStringBad(string memory text) public{
+    //     string memory newString = example; // this will NOT overwrite the "example" string because, the "newString" variable has memory parameter
+    //     example = text;
+    // }
+    
+    // function setStringGood(string memory text) public{
+    //     string newString = example; // this will overwrite the "example" string
+    //     example = text;
+    // }
+    
+    
 }
