@@ -223,3 +223,71 @@ contract DataLocation {
     
     
 }
+
+contract EtherBank {
+    
+    address owner;
+    
+    //indexed will allow to search for events raised for specified address. e.g. after sometime all events related to this address czn be found
+    // only three parameters per event can be indexed
+    event depositComplete(uint amount, address indexed recipient); //defined event
+    event balanceTransfer(address indexed fromAddress, address indexed toAddress, uint value);
+    
+    constructor(){
+        owner = msg.sender;
+    }
+    
+    //modifier can take arguments e.g. modifier onlyOwner (uint cost){ .......}
+    modifier onlyOwner {
+        require(msg.sender == owner, "No premission for this operation!"); // if reqire contition is not met, the function will be revert
+        _; // _ means run the function. This line will be replaced with the function code
+    }
+    
+    mapping(address => uint) balance;
+    //0x5B38Da6a701c568545dCfcB03FcB875f56beddC4
+    
+    function deposit() public payable returns(uint) {
+        balance[msg.sender] += msg.value;
+        emit depositComplete(msg.value, msg.sender);
+        return balance[msg.sender];
+    }
+    
+    // function withdraw(uint amount) public returns (uint){
+    //     require(balance[msg.sender] >= amount, "Balance not sufficient!");
+    //     msg.sender.transfer(amount); //build-in error handeling
+    //     balance[msg.sender] -= amount;
+    //     emit withdrawComplete(msg.sender, amount);
+    //     return balance[msg.sender];
+    // }
+    
+    function getBalance() public view returns(uint){
+        return balance[msg.sender];
+    }
+    
+    // there exist 4 types of visibilities
+    // public - anyone can execute the function
+    // private - only within the contract, remix(IDE) will not be able to execute the contract
+    // internal - like private but allow to execute function for contracts deriving from it
+    // external - only be able to execute from another contract of service. The contracts on ETH blockchain can interact between each other. 
+    
+    function transfer(address _recipient, uint amount) public {
+        //check balance of msg.sender
+        
+        require(balance[msg.sender] >= amount, "Balance not sufficient!");
+        require(msg.sender != _recipient, "Why are you doing that?");
+        
+        uint previousBalance = balance[msg.sender];
+        
+        _transfer(msg.sender, _recipient, amount);
+        emit balanceTransfer(msg.sender, _recipient, amount);
+        
+        assert(balance[msg.sender] == previousBalance - amount); //test
+        
+    }
+    
+    // _transfer - underscore is a naming convension for a private function
+    function _transfer (address from, address to, uint amount) private{
+        balance[from] -= amount;
+        balance[to] += amount;
+    }
+}
