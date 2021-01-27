@@ -230,8 +230,10 @@ contract EtherBank {
     
     //indexed will allow to search for events raised for specified address. e.g. after sometime all events related to this address czn be found
     // only three parameters per event can be indexed
-    event depositComplete(uint amount, address indexed recipient); //defined event
     event balanceTransfer(address indexed fromAddress, address indexed toAddress, uint value);
+    
+    event depositComplete(address indexed recipient, uint amount); //defined event
+    event withdrawComplete(address indexed recipient, uint amount); //defined event
     
     constructor(){
         owner = msg.sender;
@@ -248,17 +250,18 @@ contract EtherBank {
     
     function deposit() public payable returns(uint) {
         balance[msg.sender] += msg.value;
-        emit depositComplete(msg.value, msg.sender);
+        emit depositComplete(msg.sender, msg.value);
         return balance[msg.sender];
     }
     
-    // function withdraw(uint amount) public returns (uint){
-    //     require(balance[msg.sender] >= amount, "Balance not sufficient!");
-    //     msg.sender.transfer(amount); //build-in error handeling
-    //     balance[msg.sender] -= amount;
-    //     emit withdrawComplete(msg.sender, amount);
-    //     return balance[msg.sender];
-    // }
+    function withdraw(uint amount) public returns (uint){
+        
+        payable(msg.sender).transfer(amount); //build-in error handeling
+        require(balance[msg.sender] >= amount, "Balance not sufficient!");
+        balance[msg.sender] -= amount;
+        emit withdrawComplete(msg.sender, amount);
+        return balance[msg.sender];
+    }
     
     function getBalance() public view returns(uint){
         return balance[msg.sender];
