@@ -1,5 +1,12 @@
 pragma solidity 0.8.1;
 
+
+interface GovernmentInterface{
+    function addTransaction(address _from, address _to, uint _amount) external payable;
+}
+
+
+
 contract Ownable {
     address owner;
     
@@ -25,29 +32,32 @@ contract Destroyable is Ownable{
 
 contract Bank is Ownable {
 
-    event balanceAdded(uint amount, address indexed recipient); //defined event
-    event balanceTransfer(address indexed fromAddress, address indexed toAddress, uint value);
+    GovernmentInterface governmentInstance = GovernmentInterface(0xd8b934580fcE35a11B58C6D73aDeE468a2833fa8);
+
+    event depositComplete(address indexed _depositTo, uint amount); //defined event
+    event withdrawComplete(address indexed fromAddress, uint amount);
     
     mapping(address => uint) balance;
     
-    //modifier is before return or {
-    function addBalance(uint _toAdd) public onlyOwner returns(uint) {
-        
-        balance[msg.sender] += _toAdd;
-        emit balanceAdded(_toAdd, msg.sender);
+    function deposit() public payable returns(uint) {
+        balance[msg.sender] += msg.value;
+        emit depositComplete(msg.sender, balance[msg.sender]);
         return balance[msg.sender];
     }
     
-    function getBalance() public view onlyOwner returns(uint){
+    function withdraw(uint _amount) public onlyOwner returns(uint){
+        payable(msg.sender).transfer(_amount);
+        require(balance[msg.sender] >= _amount, "Balance not suffcient!");
+        balance[msg.sender] -= _amount;
+        emit withdrawComplete(msg.sender, _amount);
         return balance[msg.sender];
     }
+ 
     
-    // there exist 4 types of visibilities
-    // public - anyone can execute the function
-    // private - only within the contract, remix(IDE) will not be able to execute the contract
-    // internal - like private but allow to execute function for contracts deriving from it
-    // external - only be able to execute from another contract of service. The contracts on ETH blockchain can interact between each other. 
-    
+    function getBalance() public view returns(uint){
+        return balance[msg.sender];
+    }
+
     function transfer(address _recipient, uint amount) public {
         //check balance of msg.sender
         
@@ -56,8 +66,14 @@ contract Bank is Ownable {
         
         uint previousBalance = balance[msg.sender];
         
+        governmentInstance.addTransaction{value: 1 gwei}(msg.sender, _recipient, amount);
+        
+        //gwei = 10^9
+        //ether = 10^18
+        
         _transfer(msg.sender, _recipient, amount);
-        emit balanceTransfer(msg.sender, _recipient, amount);
+        //emit balanceTransfer(msg.sender, _recipient, amount);
+        
         
         assert(balance[msg.sender] == previousBalance - amount); //test
         
@@ -69,6 +85,3 @@ contract Bank is Ownable {
         balance[to] += amount;
     }
 }
-
-
-
